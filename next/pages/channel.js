@@ -10,7 +10,6 @@ import Link from 'next/link'
 import { HashLoader } from 'react-spinners'
 import App from 'grommet/components/App'
 import ChatIcon from 'grommet/components/icons/base/Chat'
-import RefreshIcon from 'grommet/components/icons/base/Refresh'
 import AddCircleIcon from 'grommet/components/icons/base/Add'
 import UserIcon from 'grommet/components/icons/base/User'
 import LogoutIcon from 'grommet/components/icons/base/Logout'
@@ -60,6 +59,7 @@ import ChannelsContainer from 'app/modules/channel/containers/ChannelsContainer'
 import MessagesContainer from 'app/modules/channel/containers/MessagesContainer'
 import NewMessageContainer from 'app/modules/channel/containers/NewMessageContainer'
 import NewChannelContainer from 'app/modules/channel/containers/NewChannelContainer'
+import RefreshMessages from 'app/modules/channel/containers/RefreshMessages'
 
 const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
   <CurrentUserContainer>
@@ -111,12 +111,12 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
                   <MessagesContainer channel={ channels.find(({ name }) => name === channel) }>
                     { ({ loading, refetch, messages }) => (
                       <Box full='vertical'>
+                        <RefreshMessages refetch={ refetch } timer={ 3000 } />
                         <StyledRoomHeader pad={ { vertical: 'small', horizontal: 'medium' } } justify='between'>
                           <Title>
                             { '#' + channel }
                           </Title>
 
-                          <Button icon={ <RefreshIcon /> } onClick={ () => refetch() } />
                         </StyledRoomHeader>
 
                         <Box pad='medium' flex='grow'>

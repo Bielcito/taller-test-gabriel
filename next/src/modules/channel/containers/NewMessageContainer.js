@@ -50,7 +50,7 @@ const NewMessageContainer = ({ children, user, channel }) => (
 NewMessageContainer.propTypes = {
   children: func,
   user: shape({ uid: number.isRequired }).isRequired,
-  channel: shape({ tid: number.isRequired }).isRequired,
+  channel: shape({ tid: number.isRequired }).isRequired
 }
 
 /**
