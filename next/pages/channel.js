@@ -48,6 +48,12 @@ const AddChannelButton = styled(Button)`
   margin-left: auto;
 `
 
+const StyledBox = styled(Box)`
+  display: block;
+  height: 0;
+  overflow: auto;
+`
+
 const LoadingComponent = () => (
   <Box full='vertical' justify='center' align='center'>
     <HashLoader color='#e02438' loading />
@@ -61,6 +67,12 @@ import NewMessageContainer from 'app/modules/channel/containers/NewMessageContai
 import NewChannelContainer from 'app/modules/channel/containers/NewChannelContainer'
 import RefreshMessages from 'app/modules/channel/containers/RefreshMessages'
 
+const StyledSplit = styled(Split)`
+  > :nth-child(2) {
+    overflow: unset;
+  }
+`
+
 const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
   <CurrentUserContainer>
     { ({ user }) => (
@@ -68,7 +80,7 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
         { ({ loading, channels }) => (
           (loading && !channels.length) ? <LoadingComponent /> : (
             <App centered={ false }>
-              <Split fixed flex='right'>
+              <StyledSplit fixed flex='right'>
                 <Sidebar colorIndex='neutral-1'>
                   <Header pad='medium'>
                     <Title>
@@ -119,7 +131,7 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
 
                         </StyledRoomHeader>
 
-                        <Box pad='medium' flex='grow'>
+                        <StyledBox pad='medium' flex='grow'>
                           { loading ? 'Loading...' : (
                             messages.length === 0 ? 'No one talking here yet :(' : (
                               messages.map(({ id, author, message }) => (
@@ -130,7 +142,7 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
                               ))
                             )
                           ) }
-                        </Box>
+                        </StyledBox>
 
                         <Box pad='medium' direction='column'>
                           { user && user.uid ? (
@@ -156,7 +168,7 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
                   </MessagesContainer>
                 ) }
 
-              </Split>
+              </StyledSplit>
             </App>
           )
         ) }
