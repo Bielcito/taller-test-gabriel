@@ -5,7 +5,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
-import Link from 'next/link'
+import Router from 'next/router'
 
 import { HashLoader } from 'react-spinners'
 import App from 'grommet/components/App'
@@ -73,7 +73,165 @@ const StyledSplit = styled(Split)`
   }
 `
 
-const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
+/* Pego em: https://gist.github.com/codeguy/6684588 */
+function stringToSlug (str) {
+  if (typeof str !== 'string') {
+    console.log(str)
+    return
+  }
+  str = str.trim() // trim
+  str = str.toLowerCase()
+
+  // remove accents, swap ñ for n, etc
+  let from = 'àáäâèéëêìíïîòóöôùúüûñç·/_,:;'
+  let to = 'aaaaeeeeiiiioooouuuunc------'
+  for (let i = 0, l = from.length; i < l; ++i) {
+    str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
+  }
+
+  str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+    .replace(/\s+/g, '-') // collapse whitespace and replace by -
+    .replace(/-+/g, '-') // collapse dashes
+
+  return str
+}
+
+class ChatRoom extends React.Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      channel: stringToSlug(props.url.asPath.split('#')[1])
+    }
+  }
+
+  getChannel (channels) {
+    return channels.find(({ name }) => stringToSlug(name) === stringToSlug(this.state.channel))
+  }
+
+  getChannelName (channels) {
+    let channel = channels.find(({ name }) => stringToSlug(name) === stringToSlug(this.state.channel))
+    if (channel) {
+      return channel.name
+    }
+    else {
+      return undefined
+    }
+  }
+
+  onClickLinkHandle (name) {
+    this.setState({
+      channel: decodeURIComponent(name)
+    })
+    let channel = stringToSlug(name)
+    Router.push(`/messages#${channel}`)
+  }
+
+  render () {
+    return (
+      <CurrentUserContainer>
+        { ({ user }) => (
+          <ChannelsContainer>
+            { ({ loading, channels }) => (
+              (loading && !channels.length) ? <LoadingComponent /> : (
+                <App centered={ false }>
+                  <StyledSplit fixed flex='right'>
+                    <Sidebar colorIndex='neutral-1'>
+                      <Header pad='medium'>
+                        <Title>
+                          TallerChat <ChatIcon />
+                        </Title>
+
+                        <NewChannelContainer channels={ channels }>
+                          { create => (
+                            <AddChannelButton
+                              icon={ <AddCircleIcon /> }
+                              onClick={ () => create(
+                                window.prompt('Name your new channel')
+                              ) }
+                            />
+                          ) }
+                        </NewChannelContainer>
+                      </Header>
+
+                      <Box flex='grow' justify='start'>
+                        <Menu primary>
+                          { channels.map(({ name }) => (
+                            <Anchor key={ name } onClick={ () => this.onClickLinkHandle(name) } className={ this.getChannelName(channels) === name ? 'active' : '' }>
+                              # <b>{ name }</b>
+                            </Anchor>
+                          )) }
+                        </Menu>
+                      </Box>
+
+                      <Footer pad='medium'>
+                        <Button icon={ <UserIcon /> } onClick={ console.log } />
+                        <Button icon={ <LogoutIcon /> } onClick={ console.log } />
+                      </Footer>
+                    </Sidebar>
+
+                    { !user || !user.uid ? (
+                      <LoadingComponent />
+                    ) : (
+                      <MessagesContainer channel={ this.getChannel(channels) }>
+                        { ({ loading, refetch, messages }) => (
+                          <Box full='vertical'>
+                            <RefreshMessages refetch={ refetch } timer={ 3000 } />
+                            <StyledRoomHeader pad={ { vertical: 'small', horizontal: 'medium' } } justify='between'>
+                              <Title>
+                                { '#' + this.getChannelName(channels) }
+                              </Title>
+
+                            </StyledRoomHeader>
+
+                            <StyledBox pad='medium' flex='grow'>
+                              { loading ? 'Loading...' : (
+                                messages.length === 0 ? 'No one talking here yet :(' : (
+                                  messages.map(({ id, author, message }) => (
+                                    <Box key={ id } pad='small' credit={ author }>
+                                      <StyledAuthor>{ author }</StyledAuthor>
+                                      <StyledMessage>{ message }</StyledMessage>
+                                    </Box>
+                                  ))
+                                )
+                              ) }
+                            </StyledBox>
+
+                            <Box pad='medium' direction='column'>
+                              { user && user.uid ? (
+                                <NewMessageContainer
+                                  user={ user }
+                                  channel={ this.getChannel(channels) }
+                                >
+                                  { ({ handleSubmit }) => (
+                                    <form onSubmit={ handleSubmit }>
+                                      <NewMessageContainer.Message
+                                        placeHolder='Message #general'
+                                        component={ StyledTextInput }
+                                      />
+                                    </form>
+                                  ) }
+                                </NewMessageContainer>
+                              ) : (
+                                'Log in to post messages'
+                              ) }
+                            </Box>
+                          </Box>
+                        ) }
+                      </MessagesContainer>
+                    ) }
+
+                  </StyledSplit>
+                </App>
+              )
+            ) }
+          </ChannelsContainer>
+        ) }
+      </CurrentUserContainer>
+    )
+  }
+}
+
+/*  const ChatRoom2 = ({ url, url: { query: { channel = getChannelName(url) } } }) => (
   <CurrentUserContainer>
     { ({ user }) => (
       <ChannelsContainer>
@@ -102,7 +260,7 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
                   <Box flex='grow' justify='start'>
                     <Menu primary>
                       { channels.map(({ name }) => (
-                        <Link key={ name } prefetch href={ `/messages/${name}` }>
+                        <Link key={ name } prefetch href={ `/messages#${name}` }>
                           <Anchor className={ channel === name ? 'active' : '' }>
                             # <b>{ name }</b>
                           </Anchor>
@@ -175,10 +333,10 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
       </ChannelsContainer>
     ) }
   </CurrentUserContainer>
-)
+)  */
 
 ChatRoom.propTypes = {
-  url: PropTypes.object.isRequired,
+  url: PropTypes.object.isRequired
 }
 
 export default bootstrap(ChatRoom)

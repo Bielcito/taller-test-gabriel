@@ -3,7 +3,6 @@ import React from 'react'
 import { func } from 'prop-types'
 import gql from 'graphql-tag'
 import { Query } from 'react-apollo'
-
 import { rename } from 'app/lib/func'
 
 const query = gql`
