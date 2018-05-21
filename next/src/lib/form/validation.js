@@ -12,6 +12,7 @@ const isNotEmail = value => !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(va
 // const isNotNumeric = value => !/^(\d+(\.\d+)?)$/.test(value)
 // const isNotInteger = value => Number(value) !== Math.floor(value)
 // const isNotURL = R.complement(isURL)
+const isNotString = value => !/^[a-zA-Z0-9]*$/.test(value)
 
 /*
  * Validation rules.
@@ -26,6 +27,8 @@ export const email = value => every([isNotEmpty, isNotEmail])(value) && 'Must be
 // export const checked = value => !value && 'Este campo deve estar marcado'
 // export const min = min => value => value < min && `Número deve ser maior ou igual a ${min}`
 // export const max = max => value => value >= max && `Número deve ser menor que ${max}`
+export const username = value => every([isNotString])(value) && 'Username must contain only letters and numbers'
+export const password = value => every([isNotString])(value) && 'Password must contain only letters and numbers'
 
 export const equalsField = (field, label) => (value, values) =>
   value !== values[field] && `Must equal field ${label}`

@@ -4,7 +4,7 @@ import { Form, Field } from 'react-final-form'
 import { Mutation } from 'react-apollo'
 import Router from 'next/router'
 
-import { combine, condition, required, minLength, email, equalsField } from 'app/lib/form/validation'
+import { combine, condition, required, minLength, email, equalsField, username, password } from 'app/lib/form/validation'
 
 import { loginMutation, registerMutation } from './mutations'
 
@@ -16,9 +16,9 @@ export const labels = {
 }
 
 const validations = {
-  name: combine([required]),
+  name: combine([required, username]),
   email: combine([required, email]),
-  password: combine([required, minLength(6)]),
+  password: combine([required, minLength(6), password]),
   passwordConfirm: condition(
     (value, { register }) => register,
     [required, equalsField('password', labels.password)],

@@ -52,7 +52,27 @@ const normalize = pipe(
   )),
 )
 
-const MessagesContainer = ({ children, channel }) => (
+class MessagesContainer extends React.Component {
+  render () {
+    if (this.props.channel && this.props.channel.tid) {
+      return (
+        <Query query={ query } variables={ { channel: this.props.channel.tid } }>
+          { pipe(normalize, this.props.children) }
+        </Query>
+      )
+    }
+    else {
+      return (
+        <Box full='vertical' justify='center' align='center'>
+          <AlertIcon size='large' colorIndex='critical' />
+          <Heading tag='h2'>This channel does not exist :(</Heading>
+        </Box>
+      )
+    }
+  }
+}
+
+/* const MessagesContainer2 = ({ children, channel }) => (
   channel && channel.tid ? (
     <Query query={ query } variables={ { channel: channel.tid } }>
       { pipe(normalize, children) }
@@ -63,7 +83,7 @@ const MessagesContainer = ({ children, channel }) => (
       <Heading tag='h2'>This channel does not exist :(</Heading>
     </Box>
   )
-)
+) */
 
 MessagesContainer.propTypes = {
   children: func,

@@ -1,7 +1,7 @@
 import React from 'react'
 import { func, shape, number } from 'prop-types'
 import gql from 'graphql-tag'
-import { Mutation } from 'react-apollo'
+import { ApolloConsumer } from 'react-apollo'
 import { Form, Field } from 'react-final-form'
 
 const mutation = gql`
@@ -26,31 +26,38 @@ const mutation = gql`
 
 // @TODO: implement optimistic query on messages?
 
-const NewMessageContainer = ({ children, user, channel }) => (
-  <Mutation mutation={ mutation } refetchQueries={ ['Messages'] }>
-    { send => (
-      <Form
-        children={ children }
-        onSubmit={ ({ body }, { reset }) => {
-          reset()
-
-          send({
-            variables: {
-              body,
-              user: user.uid,
-              channel: channel.tid
-            }
-          })
-        } }
-      />
-    ) }
-  </Mutation>
-)
+class NewMessageContainer extends React.Component {
+  render () {
+    return (
+      <ApolloConsumer>
+        {client => (
+          <Form
+            children={ this.props.children }
+            onSubmit={ ({ body }, { reset }) => {
+              reset()
+              client.mutate({
+                mutation: mutation,
+                variables: {
+                  body,
+                  user: this.props.user.uid,
+                  channel: this.props.channel.tid
+                }
+              }).then(response => {
+                this.props.refetch()
+              })
+            } }
+          />
+        )}
+      </ApolloConsumer>
+    )
+  }
+}
 
 NewMessageContainer.propTypes = {
   children: func,
   user: shape({ uid: number.isRequired }).isRequired,
-  channel: shape({ tid: number.isRequired }).isRequired
+  channel: shape({ tid: number.isRequired }).isRequired,
+  refetch: func
 }
 
 /**

@@ -105,7 +105,9 @@ class ChatRoom extends React.Component {
   }
 
   getChannel (channels) {
-    return channels.find(({ name }) => stringToSlug(name) === stringToSlug(this.state.channel))
+    let channel = channels.find(({ name }) => stringToSlug(name) === stringToSlug(this.state.channel))
+    console.log('channel encontrado', channel.tid)
+    return channel
   }
 
   getChannelName (channels) {
@@ -201,15 +203,18 @@ class ChatRoom extends React.Component {
                                 <NewMessageContainer
                                   user={ user }
                                   channel={ this.getChannel(channels) }
+                                  refetch={ refetch }
                                 >
-                                  { ({ handleSubmit }) => (
-                                    <form onSubmit={ handleSubmit }>
-                                      <NewMessageContainer.Message
-                                        placeHolder='Message #general'
-                                        component={ StyledTextInput }
-                                      />
-                                    </form>
-                                  ) }
+                                  { ({ handleSubmit }) => {
+                                    return (
+                                      <form onSubmit={ handleSubmit }>
+                                        <NewMessageContainer.Message
+                                          placeHolder={ `Message #${this.getChannelName(channels)}` }
+                                          component={ StyledTextInput }
+                                        />
+                                      </form>
+                                    )
+                                  } }
                                 </NewMessageContainer>
                               ) : (
                                 'Log in to post messages'
