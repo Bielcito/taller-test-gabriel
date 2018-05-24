@@ -72,19 +72,6 @@ class MessagesContainer extends React.Component {
   }
 }
 
-/* const MessagesContainer2 = ({ children, channel }) => (
-  channel && channel.tid ? (
-    <Query query={ query } variables={ { channel: channel.tid } }>
-      { pipe(normalize, children) }
-    </Query>
-  ) : (
-    <Box full='vertical' justify='center' align='center'>
-      <AlertIcon size='large' colorIndex='critical' />
-      <Heading tag='h2'>This channel does not exist :(</Heading>
-    </Box>
-  )
-) */
-
 MessagesContainer.propTypes = {
   children: func,
   channel: shape({

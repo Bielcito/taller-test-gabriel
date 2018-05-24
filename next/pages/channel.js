@@ -10,7 +10,6 @@ import Router from 'next/router'
 import { HashLoader } from 'react-spinners'
 import App from 'grommet/components/App'
 import ChatIcon from 'grommet/components/icons/base/Chat'
-import AddCircleIcon from 'grommet/components/icons/base/Add'
 import UserIcon from 'grommet/components/icons/base/User'
 import LogoutIcon from 'grommet/components/icons/base/Logout'
 import Split from 'grommet/components/Split'
@@ -27,6 +26,13 @@ import Label from 'grommet/components/Label'
 
 import bootstrap from 'app/lib/bootstrap'
 import TextInput from 'app/modules/form/components/TextInput'
+import CurrentUserContainer from 'app/modules/auth/containers/CurrentUserContainer'
+import ChannelsContainer from 'app/modules/channel/containers/ChannelsContainer'
+import MessagesContainer from 'app/modules/channel/containers/MessagesContainer'
+import NewMessageContainer from 'app/modules/channel/containers/NewMessageContainer'
+import NewChannelContainer from 'app/modules/channel/containers/NewChannelContainer'
+import RefreshMessages from 'app/modules/channel/containers/RefreshMessages'
+import ScrollControl from 'app/modules/channel/containers/ScrollControl'
 
 const StyledRoomHeader = styled(Header)`
   border-bottom: 1px solid #ddd;
@@ -44,10 +50,6 @@ const StyledTextInput = styled(TextInput)`
   width: 100%;
 `
 
-const AddChannelButton = styled(Button)`
-  margin-left: auto;
-`
-
 const StyledBox = styled(Box)`
   display: block;
   height: 0;
@@ -60,58 +62,50 @@ const LoadingComponent = () => (
   </Box>
 )
 
-import CurrentUserContainer from 'app/modules/auth/containers/CurrentUserContainer'
-import ChannelsContainer from 'app/modules/channel/containers/ChannelsContainer'
-import MessagesContainer from 'app/modules/channel/containers/MessagesContainer'
-import NewMessageContainer from 'app/modules/channel/containers/NewMessageContainer'
-import NewChannelContainer from 'app/modules/channel/containers/NewChannelContainer'
-import RefreshMessages from 'app/modules/channel/containers/RefreshMessages'
-
 const StyledSplit = styled(Split)`
   > :nth-child(2) {
     overflow: unset;
   }
 `
 
-/* Pego em: https://gist.github.com/codeguy/6684588 */
-function stringToSlug (str) {
-  if (typeof str !== 'string') {
-    console.log(str)
-    return
-  }
-  str = str.trim() // trim
-  str = str.toLowerCase()
-
-  // remove accents, swap ñ for n, etc
-  let from = 'àáäâèéëêìíïîòóöôùúüûñç·/_,:;'
-  let to = 'aaaaeeeeiiiioooouuuunc------'
-  for (let i = 0, l = from.length; i < l; ++i) {
-    str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
-  }
-
-  str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
-    .replace(/\s+/g, '-') // collapse whitespace and replace by -
-    .replace(/-+/g, '-') // collapse dashes
-
-  return str
-}
-
 class ChatRoom extends React.Component {
   constructor (props) {
     super(props)
     this.state = {
-      channel: stringToSlug(props.url.asPath.split('#')[1])
+      channel: this.stringToSlug(props.url.asPath.split('#')[1])
     }
   }
 
+  /* Pego em: https://gist.github.com/codeguy/6684588 */
+  stringToSlug (str) {
+    if (typeof str !== 'string') {
+      console.log(str)
+      return
+    }
+    str = str.trim() // trim
+    str = str.toLowerCase()
+
+    // remove accents, swap ñ for n, etc
+    let from = 'àáäâèéëêìíïîòóöôùúüûñç·/_,:;'
+    let to = 'aaaaeeeeiiiioooouuuunc------'
+    for (let i = 0, l = from.length; i < l; ++i) {
+      str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i))
+    }
+
+    str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+      .replace(/\s+/g, '-') // collapse whitespace and replace by -
+      .replace(/-+/g, '-') // collapse dashes
+
+    return str
+  }
+
   getChannel (channels) {
-    let channel = channels.find(({ name }) => stringToSlug(name) === stringToSlug(this.state.channel))
-    console.log('channel encontrado', channel.tid)
+    let channel = channels.find(({ name }) => this.stringToSlug(name) === this.stringToSlug(this.state.channel))
     return channel
   }
 
   getChannelName (channels) {
-    let channel = channels.find(({ name }) => stringToSlug(name) === stringToSlug(this.state.channel))
+    let channel = channels.find(({ name }) => this.stringToSlug(name) === this.stringToSlug(this.state.channel))
     if (channel) {
       return channel.name
     }
@@ -124,7 +118,7 @@ class ChatRoom extends React.Component {
     this.setState({
       channel: decodeURIComponent(name)
     })
-    let channel = stringToSlug(name)
+    let channel = this.stringToSlug(name)
     Router.push(`/messages#${channel}`)
   }
 
@@ -133,27 +127,18 @@ class ChatRoom extends React.Component {
       <CurrentUserContainer>
         { ({ user }) => (
           <ChannelsContainer>
-            { ({ loading, channels }) => (
+            { ({ loading, channels, errors, refetch }) => (
               (loading && !channels.length) ? <LoadingComponent /> : (
                 <App centered={ false }>
                   <StyledSplit fixed flex='right'>
                     <Sidebar colorIndex='neutral-1'>
-                      <Header pad='medium'>
+                      <StyledHeader pad='medium'>
                         <Title>
                           TallerChat <ChatIcon />
                         </Title>
 
-                        <NewChannelContainer channels={ channels }>
-                          { create => (
-                            <AddChannelButton
-                              icon={ <AddCircleIcon /> }
-                              onClick={ () => create(
-                                window.prompt('Name your new channel')
-                              ) }
-                            />
-                          ) }
-                        </NewChannelContainer>
-                      </Header>
+                        <NewChannelContainer refetch={ refetch } />
+                      </StyledHeader>
 
                       <Box flex='grow' justify='start'>
                         <Menu primary>
@@ -186,16 +171,18 @@ class ChatRoom extends React.Component {
                             </StyledRoomHeader>
 
                             <StyledBox pad='medium' flex='grow'>
-                              { loading ? 'Loading...' : (
-                                messages.length === 0 ? 'No one talking here yet :(' : (
-                                  messages.map(({ id, author, message }) => (
-                                    <Box key={ id } pad='small' credit={ author }>
-                                      <StyledAuthor>{ author }</StyledAuthor>
-                                      <StyledMessage>{ message }</StyledMessage>
-                                    </Box>
-                                  ))
-                                )
-                              ) }
+                              <ScrollControl>
+                                { loading ? 'Loading...' : (
+                                  messages.length === 0 ? 'No one talking here yet :(' : (
+                                    messages.map(({ id, author, message }) => (
+                                      <Box key={ id } pad='small' credit={ author }>
+                                        <StyledAuthor>{ author }</StyledAuthor>
+                                        <StyledMessage>{ message }</StyledMessage>
+                                      </Box>
+                                    ))
+                                  )
+                                ) }
+                              </ScrollControl>
                             </StyledBox>
 
                             <Box pad='medium' direction='column'>
@@ -235,6 +222,67 @@ class ChatRoom extends React.Component {
     )
   }
 }
+
+const StyledHeader = styled(Header)`
+  .confirmation-box {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    background-color: #0a64a0;
+    padding: 20px;
+    border-radius: 5px;
+    z-index: 1;
+    text-align: center;
+
+    h2 {
+      color: white;
+      font-weight: bolder;
+    }
+
+    input {
+      color: black;
+      width: 80%;
+      background-color: white;
+      border-radius: 0;
+    }
+
+    button {
+      border: 0;
+      background-color: white;
+      width: 80%;
+      border-radius: 0;
+    }
+
+    .errorBox {
+      background-color: #ff324d;
+      color: white;
+      padding: 5px;
+      width: 80%;
+      margin: auto;
+      margin-bottom: 20px;
+    }
+
+    .close-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      float: right;
+      cursor: pointer;
+      color: black;
+      user-select: none;
+      font-size: 20px;
+
+      > {
+        vertical-align: middle;
+      }
+    }
+  }
+`
 
 ChatRoom.propTypes = {
   url: PropTypes.object.isRequired
