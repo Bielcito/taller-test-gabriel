@@ -33,6 +33,8 @@ import NewMessageContainer from 'app/modules/channel/containers/NewMessageContai
 import NewChannelContainer from 'app/modules/channel/containers/NewChannelContainer'
 import RefreshMessages from 'app/modules/channel/containers/RefreshMessages'
 import ScrollControl from 'app/modules/channel/containers/ScrollControl'
+import envConfig from '../env-config'
+import XMLHttpRequest from 'xhr2'
 
 const StyledRoomHeader = styled(Header)`
   border-bottom: 1px solid #ddd;
@@ -122,6 +124,24 @@ class ChatRoom extends React.Component {
     Router.push(`/messages#${channel}`)
   }
 
+  logout () {
+    let graphURL = envConfig['process.env.GRAPHQL_HOST']
+    let i = graphURL.lastIndexOf('/')
+    let drupalURL = graphURL.slice(0, i)
+    let logoutURL = drupalURL + '/user/logout'
+
+    let xhttp = new XMLHttpRequest()
+    xhttp.withCredentials = true
+    xhttp.onreadystatechange = () => {
+      if (xhttp.readyState === 4) {
+        Router.push('/')
+      }
+    }
+    xhttp.open('POST', logoutURL, true)
+    xhttp.setRequestHeader('content-type', 'application/json')
+    xhttp.send()
+  }
+
   render () {
     return (
       <CurrentUserContainer>
@@ -152,7 +172,7 @@ class ChatRoom extends React.Component {
 
                       <Footer pad='medium'>
                         <Button icon={ <UserIcon /> } onClick={ console.log } />
-                        <Button icon={ <LogoutIcon /> } onClick={ console.log } />
+                        <Button icon={ <LogoutIcon /> } onClick={ this.logout } />
                       </Footer>
                     </Sidebar>
 

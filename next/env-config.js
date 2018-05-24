@@ -16,5 +16,5 @@ module.exports = {
   /**
    * @param GraphQL endpoint (full-url).
    */
-  'process.env.GRAPHQL_HOST': process.env.GRAPHQL_HOST,
+  'process.env.GRAPHQL_HOST': process.env.GRAPHQL_HOST
 }

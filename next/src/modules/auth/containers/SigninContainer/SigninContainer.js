@@ -34,7 +34,7 @@ const normalizeError = err => err.graphQLErrors ? err.graphQLErrors[0].message :
  * Redirect when registered/logged in.
  */
 const redirect = () => {
-  Router.push('/channel', '/messages/general')
+  Router.push('/channel', '/messages#general')
   return undefined
 }
 
