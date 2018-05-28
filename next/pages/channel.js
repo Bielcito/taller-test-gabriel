@@ -35,6 +35,8 @@ import RefreshMessages from 'app/modules/channel/containers/RefreshMessages'
 import ScrollControl from 'app/modules/channel/containers/ScrollControl'
 import envConfig from '../env-config'
 import XMLHttpRequest from 'xhr2'
+import ReactGravatar from 'react-gravatar'
+import md5 from 'md5'
 
 const StyledRoomHeader = styled(Header)`
   border-bottom: 1px solid #ddd;
@@ -180,55 +182,68 @@ class ChatRoom extends React.Component {
                       <LoadingComponent />
                     ) : (
                       <MessagesContainer channel={ this.getChannel(channels) }>
-                        { ({ loading, refetch, messages }) => (
-                          <Box full='vertical'>
-                            <RefreshMessages refetch={ refetch } timer={ 3000 } />
-                            <StyledRoomHeader pad={ { vertical: 'small', horizontal: 'medium' } } justify='between'>
-                              <Title>
-                                { '#' + this.getChannelName(channels) }
-                              </Title>
+                        { ({ loading, refetch, messages }) => {
+                          console.log(messages)
+                          return (
+                            <Box full='vertical'>
+                              <RefreshMessages refetch={ refetch } timer={ 3000 } />
+                              <StyledRoomHeader pad={ { vertical: 'small', horizontal: 'medium' } } justify='between'>
+                                <Title>
+                                  { '#' + this.getChannelName(channels) }
+                                </Title>
 
-                            </StyledRoomHeader>
+                              </StyledRoomHeader>
 
-                            <StyledBox pad='medium' flex='grow'>
-                              <ScrollControl>
-                                { loading ? 'Loading...' : (
-                                  messages.length === 0 ? 'No one talking here yet :(' : (
-                                    messages.map(({ id, author, message }) => (
-                                      <Box key={ id } pad='small' credit={ author }>
-                                        <StyledAuthor>{ author }</StyledAuthor>
-                                        <StyledMessage>{ message }</StyledMessage>
-                                      </Box>
-                                    ))
-                                  )
-                                ) }
-                              </ScrollControl>
-                            </StyledBox>
-
-                            <Box pad='medium' direction='column'>
-                              { user && user.uid ? (
-                                <NewMessageContainer
-                                  user={ user }
-                                  channel={ this.getChannel(channels) }
-                                  refetch={ refetch }
-                                >
-                                  { ({ handleSubmit }) => {
-                                    return (
-                                      <form onSubmit={ handleSubmit }>
-                                        <NewMessageContainer.Message
-                                          placeHolder={ `Message #${this.getChannelName(channels)}` }
-                                          component={ StyledTextInput }
-                                        />
-                                      </form>
+                              <StyledBox pad='medium' flex='grow'>
+                                <ScrollControl>
+                                  { loading ? 'Loading...' : (
+                                    messages.length === 0 ? 'No one talking here yet :(' : (
+                                      messages.map(({ id, author, message }) => {
+                                        return (
+                                          <GravatarBox key={ id }>
+                                            {
+                                              author.mail
+                                                ? <ReactGravatar email={ author.mail } className='react-gravatar' />
+                                                : <ReactGravatar email={ md5(author.name) } />
+                                            }
+                                            <div className='line-break' />
+                                            <Box pad='small' credit={ author.name }>
+                                              <StyledAuthor>{ author.name }</StyledAuthor>
+                                              <StyledMessage>{ message }</StyledMessage>
+                                            </Box>
+                                          </GravatarBox>
+                                        )
+                                      })
                                     )
-                                  } }
-                                </NewMessageContainer>
-                              ) : (
-                                'Log in to post messages'
-                              ) }
+                                  ) }
+                                </ScrollControl>
+                              </StyledBox>
+
+                              <Box pad='medium' direction='column'>
+                                { user && user.uid ? (
+                                  <NewMessageContainer
+                                    user={ user }
+                                    channel={ this.getChannel(channels) }
+                                    refetch={ refetch }
+                                  >
+                                    { ({ handleSubmit }) => {
+                                      return (
+                                        <form onSubmit={ handleSubmit }>
+                                          <NewMessageContainer.Message
+                                            placeHolder={ `Message #${this.getChannelName(channels)}` }
+                                            component={ StyledTextInput }
+                                          />
+                                        </form>
+                                      )
+                                    } }
+                                  </NewMessageContainer>
+                                ) : (
+                                  'Log in to post messages'
+                                ) }
+                              </Box>
                             </Box>
-                          </Box>
-                        ) }
+                          )
+                        } }
                       </MessagesContainer>
                     ) }
 
@@ -242,6 +257,15 @@ class ChatRoom extends React.Component {
     )
   }
 }
+
+const GravatarBox = styled(Box)`
+  flex-direction: row;
+  align-items: center;
+  .react-gravatar {
+    float: left;
+    margin-right: 7px;
+  }
+`
 
 const StyledHeader = styled(Header)`
   .confirmation-box {

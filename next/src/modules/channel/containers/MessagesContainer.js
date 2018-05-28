@@ -26,6 +26,7 @@ const query = gql`
         id
         author: entityOwner {
           name
+          mail
         }
         ... on Message {
           message: body {
@@ -38,8 +39,8 @@ const query = gql`
 `
 
 const normalizeMessage = pipe(
-  over(lensProp('author'), prop('name')),
-  over(lensProp('message'), prop('value')),
+  over(lensProp('author'), defaultTo([])),
+  over(lensProp('message'), prop('value'))
 )
 
 const normalize = pipe(
@@ -52,12 +53,18 @@ const normalize = pipe(
   )),
 )
 
+const test = (normalize, children) => {
+  console.log(normalize, children)
+  return pipe(normalize, children)
+}
+
 class MessagesContainer extends React.Component {
   render () {
     if (this.props.channel && this.props.channel.tid) {
       return (
         <Query query={ query } variables={ { channel: this.props.channel.tid } }>
-          { pipe(normalize, this.props.children) }
+          { test(normalize, this.props.children) }
+          {/* { pipe(normalize, this.props.children) } */}
         </Query>
       )
     }
