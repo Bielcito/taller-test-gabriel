@@ -1,11 +1,11 @@
 import React from 'react'
-// import { func, number } from 'prop-types'
+import { func, number } from 'prop-types'
 
 class RefreshMessages extends React.Component {
   componentDidMount () {
-    // this.interval = setInterval(() => {
-    //   this.props.refetch()
-    // }, this.props.timer)
+    this.interval = setInterval(() => {
+      this.props.refetch()
+    }, this.props.timer)
   }
 
   componentWillUnmount () {
@@ -19,8 +19,8 @@ class RefreshMessages extends React.Component {
 }
 
 RefreshMessages.propTypes = {
-  // refetch: func,
-  // timer: number
+  refetch: func,
+  timer: number
 }
 
 export default RefreshMessages
